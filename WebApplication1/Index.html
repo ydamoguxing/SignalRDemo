@@ -1,0 +1,69 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>初始signalr</title>
+    <style type="text/css">
+       
+        .container {
+            background-color: #99CCFF;
+            border: thick solid #808080;
+            padding: 20px;
+            margin: 20px;
+        }
+    </style>
+</head>
+<body>
+    <script src="Scripts/jquery-3.3.1.js"></script>
+    <script src="Scripts/jquery.signalR-2.2.2.min.js"></script>
+    <script src="signalr/hubs"></script>
+    <script type="text/javascript">
+        $(function () {
+            $("#LoginBtn").click(function () {
+                if ($("#userName").val().length > 3) {
+                    sessionStorage.setItem("user", $("#userName").val());
+                } else {
+                    alert("登陆失败") 
+                    return;
+                }
+                serverclient();
+            })
+        })
+
+        function serverclient() {
+
+        
+        //1.注册服务器连接
+        var msgHub = $.connection.msgHub;;
+        //2.给客户端注册方法
+        msgHub.client.getmsg = function (name,txt) {
+            //alert(name+":"+txt);
+            var temple = ` <div>
+            <span>{{username}}:</span>
+            <span>{{context}}</span>
+        </div>`;
+            var htms = $(temple.replace('{{username}}', name).replace('{{context}}', txt))
+            if (name === sessionStorage.getItem("user")) 
+                htms.css({"color":"red"})
+            
+            $('#msglist').append(htms);
+            
+        }
+        //3.启动链接并绑定处理事件
+        $.connection.hub.start().done(function () {
+            $("#sendBtn").removeAttr("disabled").click(function () {
+                msgHub.server.hello(sessionStorage.getItem("user"),$("#msgtext").val());
+            })
+        })
+        }
+    </script>
+    <div id="msglist">
+       
+    </div>
+    <!--<button id="sendBtn">发消息</button>-->
+    <input type="text" name="name" id="userName" value="" />
+    <button id="LoginBtn">登陆</button>
+    <input type="text"  id="msgtext" name="name" value="" />
+    <button disabled id="sendBtn">发送</button>
+</body>
+</html>
